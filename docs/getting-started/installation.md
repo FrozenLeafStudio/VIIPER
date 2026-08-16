@@ -22,13 +22,7 @@ You must have a USBIP-Client implementation available on your system to use VIIP
 
     **Install and done 😉**
 
-    !!! warning "USBIP-Win2 security issue"
-        The releases of usbip-win2 **currently** (at the time of writing) install the publicly available test signing CA as a _trusted root CA_ on your system.
-        You can safely remove this CA after installation using `certmgr.msc` (run as admin) and removing the "USBIP" from the "Trusted Root Certification Authorities" -> "Certificates" list.
-
-        **Alternatively**, you can download and install the **latest pre-release** driver manually from the
-        [OSSign repository](https://github.com/OSSign/vadimgrn--usbip-win2/releases), which has this issue fixed already.
-        _Note_ that the installer does not work, only the driver `.cat,.inf,.sys` files.
+    --8<-- "usbip-win2-signing.md"
 
 === "Linux"
 
