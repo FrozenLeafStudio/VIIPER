@@ -50,6 +50,7 @@ func main() {
 			_ = c.Close()
 		}
 	}()
+	logger.Info("VIIPER starting", "version", Version, "pid", os.Getpid())
 
 	rawLogger := setupRawLogger(&cli, logger, &closeFiles)
 
@@ -94,7 +95,7 @@ func findUserConfig(args []string) string {
 
 func setupRawLogger(cli *config.CLI, logger *slog.Logger, closeFiles *[]io.Closer) log.RawLogger {
 	if cli.Log.RawFile != "" { // nolint
-		f, err := os.OpenFile(cli.Log.RawFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644) // nolint
+		f, err := log.OpenFile(cli.Log.RawFile) // nolint
 		if err != nil {
 			logger.Error("failed to open raw log file", "file", cli.Log.RawFile, "error", err) // nolint
 			return log.NewRaw(nil)

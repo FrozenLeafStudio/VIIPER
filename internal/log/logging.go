@@ -17,6 +17,24 @@ import (
 // LevelTrace defines a custom slog level below Debug for very verbose output.
 const LevelTrace slog.Level = -8
 
+// maxAppendFileSize is the size at which OpenFile truncates an existing file
+// before appending, so a file that nothing ever rotates (e.g. the
+// autorun-registered --log.file, written on every login for the life of the
+// install) can't grow without bound.
+const maxAppendFileSize = 10 << 20 // 10 MiB
+
+// OpenFile opens path for appending, creating it if it doesn't exist. If the
+// file already exists and is at or over maxAppendFileSize, it is truncated
+// first.
+func OpenFile(path string) (*os.File, error) {
+	if fi, err := os.Stat(path); err == nil && fi.Size() >= maxAppendFileSize {
+		if err := os.Truncate(path, 0); err != nil {
+			return nil, fmt.Errorf("truncate oversized log file: %w", err)
+		}
+	}
+	return os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+}
+
 func ParseLevel(s string) slog.Level {
 	switch s {
 	case "trace":
@@ -46,7 +64,7 @@ func SetupLogger(logLevel, logFile string) (*slog.Logger, []io.Closer, error) {
 	handlers = append(handlers, LevelFilter{pass: func(l slog.Level) bool { return l >= slog.LevelError }, h: stderrHandler})
 	var closeFiles []io.Closer
 	if logFile != "" {
-		f, err := os.OpenFile(logFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+		f, err := OpenFile(logFile)
 		if err != nil {
 			return nil, nil, err
 		}
